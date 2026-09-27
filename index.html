@@ -1,1 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SupplyCrate — Unity Editor Tools</title>
+<meta name="description" content="SupplyCrate makes Unity Editor tools. Addressables Build Bloat Explorer finds assets duplicated across your Addressables bundles and shows exactly why each copy is in your build.">
+<link rel="icon" type="image/png" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0e1421;
+    --navy2: #1c2a42;
+    --panel: #172237;
+    --line: #2a3a57;
+    --text: #e8edf5;
+    --muted: #a9b4c6;
+    --orange: #ff8a3d;
+    --blue: #6ea8ff;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy2) 100%) fixed;
+    background-color: var(--navy);
+    line-height: 1.6;
+    border-top: 6px solid var(--orange);
+  }
+  a { color: var(--blue); }
+  code { font-family: "Roboto Mono", ui-monospace, monospace; font-size: .9em; background: #0b111c; padding: .1em .35em; border-radius: 4px; }
+  .hero > *, .grid > *, .two > *, .gallery > * { min-width: 0; }
+  code { overflow-wrap: anywhere; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
 
+  header { padding: 20px 0; }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none; }
+  .brand img { width: 32px; height: 32px; border-radius: 6px; }
+  nav { display: flex; gap: 20px; flex-wrap: wrap; }
+  nav a { color: var(--muted); text-decoration: none; font-weight: 500; }
+  nav a:hover { color: var(--text); }
+
+  .hero { padding: 56px 0 40px; display: grid; grid-template-columns: 1fr 1.25fr; gap: 48px; align-items: center; }
+  .eyebrow { color: var(--orange); font-weight: 600; letter-spacing: .02em; margin: 0 0 8px; }
+  h1 { font-size: clamp(2.1rem, 4.5vw, 3.4rem); line-height: 1.1; margin: 0 0 18px; letter-spacing: -.01em; }
+  .lead { color: var(--muted); font-size: 1.2rem; margin: 0 0 24px; }
+  .pill { display: inline-block; border: 2px solid var(--orange); color: var(--orange); border-radius: 999px; padding: 6px 16px; font-weight: 600; font-size: .95rem; }
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+  .btn { display: inline-block; padding: 11px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+  .btn.primary { background: var(--orange); color: #1a1208; }
+  .btn.ghost { border: 1px solid var(--line); color: var(--text); }
+  .btn:hover { filter: brightness(1.08); }
+  .shot { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0,0,0,.45); display: block; }
+
+  section { padding: 56px 0; }
+  h2 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 32px; max-width: 760px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+  .card p { margin: 0; color: var(--muted); font-size: .96rem; }
+
+  .gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .gallery figure { margin: 0; }
+  .gallery a { display: block; }
+  .gallery figcaption { color: var(--muted); font-size: .92rem; margin-top: 8px; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  ul.plain { margin: 0; padding-left: 20px; }
+  ul.plain li { margin: 6px 0; }
+  ol.steps { margin: 0; padding-left: 22px; }
+  ol.steps li { margin: 10px 0; }
+  .muted { color: var(--muted); }
+  .note { border-left: 3px solid var(--orange); padding: 4px 0 4px 14px; color: var(--muted); margin-top: 20px; }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: .9rem; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  @media (max-width: 860px) {
+    .hero, .two { grid-template-columns: minmax(0, 1fr); }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gallery { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .wrap { padding: 0 16px; }
+    .hero { padding-top: 32px; }
+    section { padding: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="assets/icon.png" alt="">SupplyCrate</a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#screenshots">Screenshots</a>
+      <a href="#documentation">Documentation</a>
+      <a href="#support">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div>
+      <p class="eyebrow">SupplyCrate · Unity Editor tools</p>
+      <h1>Addressables Build Bloat Explorer</h1>
+      <p class="lead">Find assets duplicated across your Addressables bundles and see exactly which
+        scene, prefab and material pulled each copy into your build.</p>
+      <span class="pill">Editor-only · Unity 6 · Addressables 2.9.1+</span>
+      <div class="actions">
+        <a class="btn primary" href="#documentation">Read the manual</a>
+        <a class="btn ghost" href="#screenshots">See screenshots</a>
+      </div>
+      <p class="muted" style="margin-top:18px">Coming soon to the Unity Asset Store.</p>
+    </div>
+    <img class="shot" src="assets/full_window.png" width="1280" height="846"
+         alt="Build Bloat Explorer window showing duplicated assets and the chain that included each copy">
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>Why is my Addressables build so big?</h2>
+      <p class="sub">With Build Layout reports enabled, Addressables writes detailed build data — often
+        tens of thousands of lines of JSON. Build Bloat Explorer reads that report and turns it into answers.</p>
+      <div class="grid">
+        <div class="card"><h3>Top findings in plain language</h3><p>“Hero_Body_Albedo.png is packed into 4 bundles (~8 MB estimated duplicated data).” Click a finding to jump to it.</p></div>
+        <div class="card"><h3>Duplicates across bundles</h3><p>Every asset packed into more than one bundle, with per-copy size, number of copies and estimated duplicated data, worst first.</p></div>
+        <div class="card"><h3>“Why is this included?”</h3><p>The chain that pulled in every copy — <code>Level_Forest → Hero.mat → Hero_Body_Albedo.png</code> — plus every asset that references it directly. Every link is clickable.</p></div>
+        <div class="card"><h3>Group-level view</h3><p>Which Addressables groups hold duplicated content, their packing mode, and which groups they share duplicates with.</p></div>
+        <div class="card"><h3>Load size per bundle</h3><p>Each bundle plus everything it depends on — what loading one level really pulls in.</p></div>
+        <div class="card"><h3>Local vs remote content</h3><p>Bundle bytes on local and remote load paths, per bundle and in total, with a finding when local content depends on remote bundles.</p></div>
+        <div class="card"><h3>Compare two builds</h3><p>What grew, which bundles were added, which assets gained extra copies — and why.</p></div>
+        <div class="card"><h3>Tables, Show in Project, CSV</h3><p>Sortable, searchable bundle and asset tables built for thousands of assets, with CSV export for every table.</p></div>
+        <div class="card"><h3>Try it in seconds</h3><p>A sample report from a demo game is included, so you can explore every tab before building anything.</p></div>
+      </div>
+      <p class="note">Suggestions are starting points, not guaranteed savings — some duplication is intentional.
+        Editor-only: nothing is added to your player build, no runtime code, no services, no account. Works offline.</p>
+    </div>
+  </section>
+
+  <section id="screenshots">
+    <div class="wrap">
+      <h2>Screenshots</h2>
+      <p class="sub">Taken from a generated demo project built with Addressables 2.9.1. All numbers are real output of the tool for that build.</p>
+      <div class="gallery">
+        <figure><a href="assets/screenshot_01_overview.png"><img class="shot" loading="lazy" src="assets/screenshot_01_overview.png" width="1920" height="1080" alt="Overview tab with top findings"></a><figcaption>Overview and top findings</figcaption></figure>
+        <figure><a href="assets/screenshot_02_duplicates.png"><img class="shot" loading="lazy" src="assets/screenshot_02_duplicates.png" width="1920" height="1080" alt="Duplicates tab"></a><figcaption>Duplicates across bundles</figcaption></figure>
+        <figure><a href="assets/screenshot_03_why_included.png"><img class="shot" loading="lazy" src="assets/screenshot_03_why_included.png" width="1920" height="1080" alt="Why included panel with dependency chains"></a><figcaption>Why each copy is in the build</figcaption></figure>
+        <figure><a href="assets/screenshot_04_groups.png"><img class="shot" loading="lazy" src="assets/screenshot_04_groups.png" width="1920" height="1080" alt="Groups tab"></a><figcaption>Duplication per Addressables group</figcaption></figure>
+        <figure><a href="assets/screenshot_05_compare.png"><img class="shot" loading="lazy" src="assets/screenshot_05_compare.png" width="1920" height="1080" alt="Compare two builds"></a><figcaption>Compare two builds</figcaption></figure>
+        <figure><a href="assets/screenshot_06_bundle_details.png"><img class="shot" loading="lazy" src="assets/screenshot_06_bundle_details.png" width="1920" height="1080" alt="Bundle details"></a><figcaption>Bundle drill-down and load size</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="documentation">
+    <div class="wrap">
+      <h2>Documentation</h2>
+      <p class="sub">The full user manual (PDF, with screenshots) also ships inside the package.</p>
+      <div class="actions" style="margin:0 0 32px"><a class="btn primary" href="manual.pdf">Download the user manual (PDF)</a></div>
+      <div class="two">
+        <div class="card">
+          <h3>Quick start</h3>
+          <ol class="steps">
+            <li>Import the package. Addressables 2.9.1 or newer is installed automatically if it is missing.</li>
+            <li>Open <b>Window › Addressables › Build Bloat Explorer</b>. No report yet? Click <b>Explore Sample Report</b> to try every tab right away.</li>
+            <li>Build Layout reports are off by default in Addressables. Click <b>Enable Build Layout Reports</b> in the empty state.</li>
+            <li>Build your Addressables content (<b>Window › Asset Management › Addressables › Groups</b> → Build), then click <b>Load Latest</b>.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>Requirements</h3>
+          <ul class="plain">
+            <li>Unity 6000.3 or newer</li>
+            <li>Addressables (<code>com.unity.addressables</code>) 2.9.1 or newer</li>
+            <li>Tested with Unity 6000.3.18f1, 6000.4.10f1 and 6000.6.2f1; Addressables 2.9.1 and 2.11.2; Windows 11. macOS and Linux are not tested yet.</li>
+            <li>Reads the Build Layout report from <code>Library/com.unity.addressables/BuildReports/</code></li>
+            <li>Full C# source included; Editor assemblies only</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="support">
+    <div class="wrap">
+      <h2>Support</h2>
+      <p class="sub">Questions, bug reports and feature requests are welcome.</p>
+      <div class="card">
+        <p style="color:var(--text);margin-bottom:10px">Email <a href="mailto:compassandcircle@gmail.com">compassandcircle@gmail.com</a></p>
+        <p>Please include your Unity and Addressables versions and, if you can, the <code>buildlayout_*.json</code>
+          file the problem occurs with. It contains asset paths and names from your project, but no asset content.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 SupplyCrate</span>
+    <span>Unity is a trademark of Unity Technologies. SupplyCrate is not affiliated with Unity Technologies.</span>
+  </div>
+</footer>
+
+</body>
+</html>
